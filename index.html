@@ -21,6 +21,13 @@
       100% { transform: translateY(0) scale(1); opacity: 1; }
     }
     .animate-toast { animation: toastEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    
+    /* Animasi Pop-up Gambar Modal */
+    @keyframes modalEnter {
+      0% { opacity: 0; transform: scale(0.95); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .animate-modal { animation: modalEnter 0.3s ease-out forwards; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
@@ -31,11 +38,10 @@
     const SCHOOL_LOGO = "https://lh3.googleusercontent.com/d/1d8oc7fFLvWhiCsny_ssG7-Mxet0_C20h";
 
     // ==========================================
-    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    // PASTE URL API GOOGLE APPS SCRIPT DI BAWAH INI
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwMGHr-nHnR4udI3wRJj6sv2zppns60An82BM4li8m4HFYl_56HeAJQf0N47vZWjmcBTg/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz2IhcHDkDNge6KwlVm_5A0f4sQ-7BZcelJuZiW9gTtS9ZIEVMFg3lJPCSYuIg3dUzttQ/exec";
 
-    // Fungsi Fetch API ke Google Sheets
     const fetchAPI = async (action, payload = null) => {
       try {
         if (payload) {
@@ -106,7 +112,6 @@
       const canvasRef = useRef(null);
       const [photoBase64, setPhotoBase64] = useState(null);
       const [cameraError, setCameraError] = useState(false);
-      const [errorMsg, setErrorMsg] = useState('');
 
       useEffect(() => {
         fetchAPI('getGTK').then(data => setListGtk(data)).catch(() => showToast("Gagal memuat data GTK", "error"));
@@ -115,18 +120,15 @@
       }, []);
 
       const startCamera = async () => {
-        setCameraError(false); setErrorMsg('');
+        setCameraError(false);
         try {
-          // KARENA KITA SUDAH DI LUAR IFRAME GOOGLE, KAMERA AKAN BEBAS MENYALA!
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.play();
           }
         } catch (err) {
-          console.error("Kamera Error:", err);
           setCameraError(true);
-          setErrorMsg(err.message || err.name);
         }
       };
 
@@ -136,13 +138,33 @@
         }
       };
 
+      // FUNGSI CAPTURE DENGAN WATERMARK WAKTU
       const capturePhoto = () => {
         const video = videoRef.current;
         const canvas = canvasRef.current;
         if (!video || !canvas || cameraError) return;
+
         canvas.width = video.videoWidth || 640; 
         canvas.height = video.videoHeight || 480;
-        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        const ctx = canvas.getContext('2d');
+        
+        // 1. Gambar hasil video ke kanvas
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // 2. Tambahkan Watermark Waktu
+        const dateStr = new Date().toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'medium' });
+        
+        // Buat Background kotak semi-transparan untuk teks agar mudah dibaca
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; 
+        ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+        
+        // Tulis Teks Waktu
+        ctx.font = "bold 15px Arial";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "right";
+        ctx.fillText(`MTsN 3 Banyuwangi | ${dateStr}`, canvas.width - 15, canvas.height - 15);
+        
+        // Simpan sebagai Base64
         setPhotoBase64(canvas.toDataURL('image/jpeg', 0.8));
         stopCamera();
       };
@@ -229,7 +251,7 @@
               </div>
               
               <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 text-center">
-                <label className="block text-sm font-semibold text-slate-700 mb-3"><i className="fas fa-camera mr-2"></i>Ambil Foto / Bukti Kunjungan</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-3"><i className="fas fa-camera mr-2"></i>Ambil Foto (Otomatis ditambahkan Watermark Waktu)</label>
                 
                 <div className="relative mx-auto w-full max-w-sm rounded-xl overflow-hidden mb-3 border-2 border-slate-800 bg-black shadow-inner">
                   <video ref={videoRef} autoPlay playsInline muted className={`w-full h-auto object-cover ${photoBase64 || cameraError ? 'hidden' : 'block'}`}></video>
@@ -237,8 +259,7 @@
                   {cameraError && !photoBase64 && (
                     <div className="bg-slate-800 text-white p-6 rounded-lg text-xs leading-relaxed">
                       <i className="fas fa-exclamation-triangle text-3xl text-yellow-400 mb-3"></i><br/>
-                      Kamera gagal menyala: {errorMsg}<br/><br/>
-                      Pastikan Anda mengizinkan akses kamera, atau silakan gunakan tombol unggah.
+                      Kamera gagal menyala. Silakan gunakan tombol unggah.
                     </div>
                   )}
 
@@ -353,6 +374,9 @@
       const [loading, setLoading] = useState(true);
       const [filterMulai, setFilterMulai] = useState('');
       const [filterAkhir, setFilterAkhir] = useState('');
+      
+      // State Untuk Modal Gambar
+      const [previewImgUrl, setPreviewImgUrl] = useState(null);
 
       useEffect(() => { loadData(); }, []);
 
@@ -390,7 +414,46 @@
       };
 
       return (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 relative">
+          
+          {/* ==========================================
+              MODAL POP-UP VIEWER GAMBAR DENGAN BYPASS LH3
+              ========================================== */}
+          {previewImgUrl && (
+            <div className="fixed inset-0 z-[99999] bg-slate-900/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setPreviewImgUrl(null)}>
+              <div className="animate-modal relative w-full max-w-4xl bg-white p-2 md:p-3 rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="absolute -top-12 right-0 flex gap-4">
+                  <a href={previewImgUrl} target="_blank" className="text-white hover:text-emerald-400 text-xl md:text-2xl transition bg-slate-800/50 p-2 rounded-full"><i className="fas fa-external-link-alt"></i></a>
+                  <button onClick={() => setPreviewImgUrl(null)} className="text-white hover:text-rose-400 text-2xl md:text-3xl transition bg-slate-800/50 px-3 py-1 rounded-full"><i className="fas fa-times"></i></button>
+                </div>
+                
+                {/* Image bypass & fallback logic */}
+                <img
+                  src={(() => {
+                    let fileId = "";
+                    const m1 = previewImgUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                    const m2 = previewImgUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                    if(m1) fileId = m1[1]; else if(m2) fileId = m2[1];
+                    return fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : previewImgUrl;
+                  })()}
+                  onError={(e) => {
+                    let fileId = "";
+                    const m1 = previewImgUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                    const m2 = previewImgUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                    if(m1) fileId = m1[1]; else if(m2) fileId = m2[1];
+                    if(fileId) {
+                      const fallback = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+                      if(e.target.src !== fallback) e.target.src = fallback;
+                    }
+                  }}
+                  className="w-full h-auto max-h-[85vh] object-contain rounded-xl bg-slate-100"
+                  alt="Bukti Tamu Diperbesar"
+                />
+              </div>
+            </div>
+          )}
+          {/* ========================================== */}
+
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
             <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
               <div><label className="block text-[10px] uppercase text-slate-500 font-extrabold mb-1">Mulai Tgl</label><input type="date" value={filterMulai} onChange={e=>setFilterMulai(e.target.value)} className="border rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 font-medium" /></div>
@@ -406,7 +469,7 @@
           {loading ? <div className="text-center py-10"><i className="fas fa-spinner fa-spin text-2xl text-emerald-600"></i><p className="mt-2 text-sm text-slate-500 font-medium">Memuat Data...</p></div> : 
             <div className="overflow-x-auto rounded-xl border border-slate-100">
               <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
-                <thead className="bg-slate-50"><tr className="border-b border-slate-200 text-slate-500 text-[11px] uppercase font-extrabold tracking-wider"><th className="py-3 px-4">Tgl</th><th className="py-3 px-4">Nama</th><th className="py-3 px-4">Instansi</th><th className="py-3 px-4">Bertemu</th><th className="py-3 px-4">Foto</th><th className="py-3 px-4">Status WA</th></tr></thead>
+                <thead className="bg-slate-50"><tr className="border-b border-slate-200 text-slate-500 text-[11px] uppercase font-extrabold tracking-wider"><th className="py-3 px-4">Tgl</th><th className="py-3 px-4">Nama</th><th className="py-3 px-4">Instansi</th><th className="py-3 px-4">Bertemu</th><th className="py-3 px-4 text-center">Foto</th><th className="py-3 px-4 text-center">Status WA</th></tr></thead>
                 <tbody>
                   {filteredData.map((g, i) => (
                     <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
@@ -414,8 +477,13 @@
                       <td className="py-3 px-4 font-bold text-slate-800">{g.nama}</td>
                       <td className="py-3 px-4 text-slate-600">{g.instansi}</td>
                       <td className="py-3 px-4 font-semibold text-slate-700">{g.bertemu}</td>
-                      <td className="py-3 px-4">{g.buktiUrl !== '-' ? <a href={g.buktiUrl} target="_blank" className="text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded"><i className="fas fa-image"></i> Buka</a> : '-'}</td>
-                      <td className="py-3 px-4"><span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase ${g.wa === 'Terkirim' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{g.wa}</span></td>
+                      <td className="py-3 px-4 text-center">
+                        {/* TOMBOL BUKA GAMBAR DI POPUP MODAL */}
+                        {g.buktiUrl !== '-' ? 
+                          <button onClick={() => setPreviewImgUrl(g.buktiUrl)} className="text-blue-600 hover:text-blue-800 font-bold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"><i className="fas fa-image"></i> Buka</button> 
+                        : '-'}
+                      </td>
+                      <td className="py-3 px-4 text-center"><span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase ${g.wa === 'Terkirim' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{g.wa}</span></td>
                     </tr>
                   ))}
                   {filteredData.length === 0 && <tr><td colSpan="6" className="text-center py-8 text-slate-400 font-medium">Belum ada data tamu.</td></tr>}
