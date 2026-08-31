@@ -16,16 +16,16 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
-    @keyframes toastEnter {
-      0% { transform: translateY(-100%) scale(0.9); opacity: 0; }
-      100% { transform: translateY(0) scale(1); opacity: 1; }
-    }
+    @keyframes toastEnter { 0% { transform: translateY(-100%) scale(0.9); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
     .animate-toast { animation: toastEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-    @keyframes modalEnter {
-      0% { opacity: 0; transform: scale(0.95); }
-      100% { opacity: 1; transform: scale(1); }
-    }
+    @keyframes modalEnter { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
     .animate-modal { animation: modalEnter 0.3s ease-out forwards; }
+    
+    /* Scrollbar minimalis untuk tabel */
+    .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px;}
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
@@ -38,7 +38,7 @@
     // ==========================================
     // PASTE URL API GOOGLE APPS SCRIPT DI BAWAH INI
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxYHN9NQMaiDJfLHU2PzG0kCHfCuZItv7WssZk7zxT6UMrlUdq4c5JJvXbHIRIyOoozkg/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby3RjkHaQbyM1rT4uNDB4ayiy8YI0Ga2z2FWKIIDfTi662j-O-swaU-zV_l7EUX66pB6g/exec";
 
     const fetchAPI = async (action, payload = null) => {
       try {
@@ -50,16 +50,12 @@
           return await res.json();
         }
       } catch (err) {
-        console.error(err);
-        throw new Error("Gagal terhubung ke database server");
+        console.error(err); throw new Error("Gagal terhubung ke database server");
       }
     };
 
     const formatNoWA = (value) => {
-      if (!value) return '';
-      let val = value.replace(/\D/g, ''); 
-      if (val.startsWith('0')) { val = '62' + val.substring(1); }
-      return val;
+      if (!value) return ''; let val = value.replace(/\D/g, ''); if (val.startsWith('0')) { val = '62' + val.substring(1); } return val;
     };
 
     function App() {
@@ -67,23 +63,16 @@
       const [user, setUser] = useState(null);
       const [toast, setToast] = useState(null);
 
-      const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 5000);
-      };
+      const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 5000); };
 
       return (
         <div className="min-h-screen flex flex-col relative">
           {toast && (
             <div className="fixed top-6 left-0 right-0 z-[9999] flex justify-center px-4 pointer-events-none">
               <div className="animate-toast pointer-events-auto flex items-center gap-4 p-4 rounded-3xl shadow-2xl border border-white/40 bg-white/85 backdrop-blur-xl min-w-[320px] max-w-md w-full ring-1 ring-slate-900/5">
-                <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${toast.type === 'success' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/40 text-white' : 'bg-gradient-to-br from-rose-400 to-rose-600 shadow-rose-500/40 text-white'}`}>
-                  <i className={`fas ${toast.type === 'success' ? 'fa-check text-xl' : 'fa-exclamation text-xl'}`}></i>
-                </div>
+                <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${toast.type === 'success' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/40 text-white' : 'bg-gradient-to-br from-rose-400 to-rose-600 shadow-rose-500/40 text-white'}`}><i className={`fas ${toast.type === 'success' ? 'fa-check text-xl' : 'fa-exclamation text-xl'}`}></i></div>
                 <div className="flex-1">
-                  <h4 className={`text-[11px] font-extrabold uppercase tracking-widest mb-0.5 ${toast.type === 'success' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {toast.type === 'success' ? 'Sistem Informasi' : 'Peringatan Sistem'}
-                  </h4>
+                  <h4 className={`text-[11px] font-extrabold uppercase tracking-widest mb-0.5 ${toast.type === 'success' ? 'text-emerald-600' : 'text-rose-600'}`}>{toast.type === 'success' ? 'Sistem Informasi' : 'Peringatan Sistem'}</h4>
                   <p className="text-slate-800 text-sm font-semibold leading-snug">{toast.msg}</p>
                 </div>
                 <button onClick={() => setToast(null)} className="flex-shrink-0 text-slate-400 hover:text-slate-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"><i className="fas fa-times text-lg"></i></button>
@@ -106,88 +95,46 @@
       const [listGtk, setListGtk] = useState([]);
       const [submitting, setSubmitting] = useState(false);
       
-      const videoRef = useRef(null);
-      const canvasRef = useRef(null);
+      const videoRef = useRef(null); const canvasRef = useRef(null);
       const [photoBase64, setPhotoBase64] = useState(null);
       const [cameraError, setCameraError] = useState(false);
 
-      useEffect(() => {
-        fetchAPI('getGTK').then(data => setListGtk(data)).catch(() => showToast("Gagal memuat data GTK", "error"));
-        startCamera(); 
-        return () => stopCamera();
-      }, []);
+      useEffect(() => { fetchAPI('getGTK').then(data => setListGtk(data)).catch(() => showToast("Gagal memuat data GTK", "error")); startCamera(); return () => stopCamera(); }, []);
 
       const startCamera = async () => {
         setCameraError(false);
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.play();
-          }
-        } catch (err) {
-          setCameraError(true);
-        }
+        try { const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); } } catch (err) { setCameraError(true); }
       };
-
-      const stopCamera = () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-          videoRef.current.srcObject.getTracks().forEach(t => t.stop());
-        }
-      };
+      const stopCamera = () => { if (videoRef.current && videoRef.current.srcObject) { videoRef.current.srcObject.getTracks().forEach(t => t.stop()); } };
 
       const capturePhoto = () => {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
+        const video = videoRef.current; const canvas = canvasRef.current;
         if (!video || !canvas || cameraError) return;
-
-        canvas.width = video.videoWidth || 640; 
-        canvas.height = video.videoHeight || 480;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
+        canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dateStr = new Date().toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'medium' });
-        ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; 
-        ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
-        ctx.font = "bold 15px Arial";
-        ctx.fillStyle = "#ffffff";
-        ctx.textAlign = "right";
-        ctx.fillText(`MTsN 3 Banyuwangi | ${dateStr}`, canvas.width - 15, canvas.height - 15);
-        
-        setPhotoBase64(canvas.toDataURL('image/jpeg', 0.8));
-        stopCamera();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+        ctx.font = "bold 15px Arial"; ctx.fillStyle = "#ffffff"; ctx.textAlign = "right"; ctx.fillText(`MTsN 3 Banyuwangi | ${dateStr}`, canvas.width - 15, canvas.height - 15);
+        setPhotoBase64(canvas.toDataURL('image/jpeg', 0.8)); stopCamera();
       };
 
       const resetPhoto = () => { setPhotoBase64(null); startCamera(); };
-
-      const handleFileFallback = (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => { setPhotoBase64(ev.target.result); stopCamera(); };
-        reader.readAsDataURL(file);
-      };
+      const handleFileFallback = (e) => { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (ev) => { setPhotoBase64(ev.target.result); stopCamera(); }; reader.readAsDataURL(file); };
 
       const handleSubmit = (e) => {
         e.preventDefault();
-        if (!photoBase64) return showToast("Mohon ambil foto / bukti kunjungan Anda terlebih dahulu!", "error");
+        if (!photoBase64) return showToast("Mohon ambil foto / bukti kunjungan Anda!", "error");
         let finalKeperluan = formData.keperluan === "Lainnya" ? keperluanLainnya : formData.keperluan;
         if (!finalKeperluan) return showToast("Silakan isi keperluan Anda", "error");
 
         setSubmitting(true);
-        fetchAPI('saveGuest', { ...formData, keperluan: finalKeperluan, fotoBase64: photoBase64 })
-          .then(res => {
-            setSubmitting(false);
-            if (res.success) {
-              showToast(res.message, 'success');
-              setFormData({ nama: '', noHp: '', instansi: '', jk: 'L', alamat: '', bertemu: '', keperluan: '' });
-              setKeperluanLainnya(''); setPhotoBase64(null);
-              startCamera(); 
-            } else showToast(res.message, 'error');
-          })
-          .catch(err => {
-            setSubmitting(false); showToast("Sistem gagal terhubung", "error");
-          });
+        fetchAPI('saveGuest', { ...formData, keperluan: finalKeperluan, fotoBase64: photoBase64 }).then(res => {
+          setSubmitting(false);
+          if (res.success) {
+            showToast(res.message, 'success');
+            setFormData({ nama: '', noHp: '', instansi: '', jk: 'L', alamat: '', bertemu: '', keperluan: '' }); setKeperluanLainnya(''); setPhotoBase64(null); startCamera(); 
+          } else showToast(res.message, 'error');
+        }).catch(err => { setSubmitting(false); showToast("Sistem gagal terhubung", "error"); });
       };
 
       return (
@@ -201,11 +148,7 @@
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              <div className="mb-6 border-b border-slate-100 pb-2">
-                <h2 className="text-white bg-blue-900 inline-block px-4 py-2 font-bold rounded-lg text-lg uppercase tracking-wide shadow-md">
-                  <i className="fas fa-user-edit mr-2"></i> Registrasi Tamu
-                </h2>
-              </div>
+              <div className="mb-6 border-b border-slate-100 pb-2"><h2 className="text-white bg-blue-900 inline-block px-4 py-2 font-bold rounded-lg text-lg uppercase tracking-wide shadow-md"><i className="fas fa-user-edit mr-2"></i> Registrasi Tamu</h2></div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div><label className="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label><input type="text" required value={formData.nama} onChange={e=>setFormData({...formData, nama: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Masukkan nama..." /></div>
@@ -213,11 +156,11 @@
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Asal Instansi</label><input type="text" required value={formData.instansi} onChange={e=>setFormData({...formData, instansi: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Wali Murid / Dinas" /></div>
+                <div><label className="block text-xs font-semibold text-slate-600 mb-1">Asal Instansi</label><input type="text" required value={formData.instansi} onChange={e=>setFormData({...formData, instansi: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Wali Murid / Dinas / Umum" /></div>
                 <div><label className="block text-xs font-semibold text-slate-600 mb-1">Jenis Kelamin</label><select value={formData.jk} onChange={e=>setFormData({...formData, jk: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500"><option value="L">Laki-laki (L)</option><option value="P">Perempuan (P)</option></select></div>
               </div>
 
-              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Alamat Lengkap</label><textarea required rows="2" value={formData.alamat} onChange={e=>setFormData({...formData, alamat: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-500" placeholder="Alamat asal anda..."></textarea></div>
+              <div><label className="block text-xs font-semibold text-slate-600 mb-1">Alamat Lengkap</label><textarea required rows="2" value={formData.alamat} onChange={e=>setFormData({...formData, alamat: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-500" placeholder="Alamat lengkap anda..."></textarea></div>
               
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Bertemu Dengan</label>
@@ -240,36 +183,21 @@
               </div>
               
               <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 text-center">
-                <label className="block text-sm font-semibold text-slate-700 mb-3"><i className="fas fa-camera mr-2"></i>Ambil Foto (Otomatis ditambahkan Watermark Waktu)</label>
-                
+                <label className="block text-sm font-semibold text-slate-700 mb-3"><i className="fas fa-camera mr-2"></i>Ambil Foto Bukti</label>
                 <div className="relative mx-auto w-full max-w-sm rounded-xl overflow-hidden mb-3 border-2 border-slate-800 bg-black shadow-inner">
                   <video ref={videoRef} autoPlay playsInline muted className={`w-full h-auto object-cover ${photoBase64 || cameraError ? 'hidden' : 'block'}`}></video>
-                  {cameraError && !photoBase64 && (
-                    <div className="bg-slate-800 text-white p-6 rounded-lg text-xs leading-relaxed">
-                      <i className="fas fa-exclamation-triangle text-3xl text-yellow-400 mb-3"></i><br/>
-                      Kamera gagal menyala. Silakan gunakan tombol unggah.
-                    </div>
-                  )}
+                  {cameraError && !photoBase64 && (<div className="bg-slate-800 text-white p-6 rounded-lg text-xs"><i className="fas fa-exclamation-triangle text-3xl text-yellow-400 mb-3"></i><br/>Kamera diblokir. Silakan gunakan tombol unggah.</div>)}
                   <canvas ref={canvasRef} className="hidden"></canvas>
                   {photoBase64 && <img src={photoBase64} className="w-full h-auto object-cover" />}
                 </div>
 
                 {!photoBase64 ? (
                   <div className="flex flex-col gap-2 max-w-sm mx-auto">
-                    {!cameraError && (
-                      <button type="button" onClick={capturePhoto} className="bg-emerald-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-emerald-700 transition">
-                        <i className="fas fa-camera-retro mr-2"></i> Jepret Foto Sekarang
-                      </button>
-                    )}
-                    <label className="bg-slate-600 text-white px-5 py-3 rounded-xl text-xs font-bold hover:bg-slate-700 transition cursor-pointer shadow mt-2">
-                      <i className="fas fa-folder-open mr-2"></i> Ambil Foto Manual dari HP/Laptop
-                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileFallback} />
-                    </label>
+                    {!cameraError && (<button type="button" onClick={capturePhoto} className="bg-emerald-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-emerald-700 transition"><i className="fas fa-camera-retro mr-2"></i> Jepret Foto Sekarang</button>)}
+                    <label className="bg-slate-600 text-white px-5 py-3 rounded-xl text-xs font-bold hover:bg-slate-700 transition cursor-pointer shadow mt-2"><i className="fas fa-folder-open mr-2"></i> Ambil Manual / Unggah File <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileFallback} /></label>
                   </div>
                 ) : (
-                  <button type="button" onClick={resetPhoto} className="bg-rose-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold w-full max-w-sm shadow hover:bg-rose-600 transition">
-                    <i className="fas fa-redo mr-2"></i> Hapus & Ulangi Foto
-                  </button>
+                  <button type="button" onClick={resetPhoto} className="bg-rose-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold w-full max-w-sm shadow hover:bg-rose-600 transition"><i className="fas fa-redo mr-2"></i> Hapus & Ulangi Foto</button>
                 )}
               </div>
 
@@ -283,12 +211,14 @@
     }
 
     // ==========================================
-    // HALAMAN LOGIN
+    // HALAMAN LOGIN (FITUR MATA PASSWORD DITAMBAHKAN)
     // ==========================================
     function LoginView({ setView, setUser, showToast }) {
       const [username, setUsername] = useState('Admin');
       const [password, setPassword] = useState('');
+      const [showPassword, setShowPassword] = useState(false);
       const [loading, setLoading] = useState(false);
+
       const handleLogin = (e) => {
         e.preventDefault(); setLoading(true);
         fetchAPI('login', {username, password}).then(res => {
@@ -297,15 +227,27 @@
           else showToast(res.message, 'error');
         }).catch(() => { setLoading(false); showToast("Gagal terhubung server", "error"); });
       };
+
       return (
         <div className="min-h-screen bg-slate-900 flex items-center justify-center px-4">
           <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 relative shadow-2xl">
             <button onClick={() => setView('public')} className="absolute top-6 left-6 text-slate-400 hover:text-white"><i className="fas fa-arrow-left text-xl"></i></button>
             <div className="text-center mb-8"><h2 className="text-2xl font-extrabold text-white mt-4">Login Sistem</h2><p className="text-slate-400 text-xs mt-1">MTsN 3 Banyuwangi</p></div>
             <form onSubmit={handleLogin} className="space-y-5">
-              <select value={username} onChange={e=>setUsername(e.target.value)} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none focus:border-emerald-500 font-medium"><option>Admin</option><option>Petugas</option></select>
-              <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none focus:border-emerald-500 font-medium" />
-              <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg">{loading ? 'Memverifikasi...' : 'Masuk Dashboard'}</button>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Akses Login</label>
+                <select value={username} onChange={e=>setUsername(e.target.value)} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none focus:border-emerald-500 font-medium">
+                  <option>Admin</option><option>Petugas</option><option>Pimpinan</option>
+                </select>
+              </div>
+              <div className="relative">
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Password</label>
+                <input type={showPassword ? "text" : "password"} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Masukkan password..." className="w-full pl-4 pr-12 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none focus:border-emerald-500 font-medium" />
+                <button type="button" onClick={()=>setShowPassword(!showPassword)} className="absolute right-4 top-8 text-slate-400 hover:text-white transition mt-0.5">
+                  <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                </button>
+              </div>
+              <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg mt-2">{loading ? 'Memverifikasi...' : 'Masuk Dashboard'}</button>
             </form>
           </div>
         </div>
@@ -313,39 +255,52 @@
     }
 
     // ==========================================
-    // DASHBOARD & MENU-MENU
+    // DASHBOARD & MENU-MENU (HIDE/UNHIDE SIDEBAR DITAMBAHKAN)
     // ==========================================
     function AdminDashboard({ user, setView, showToast }) {
       const [activeMenu, setActiveMenu] = useState('rekap'); 
-      const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [sidebarOpen, setSidebarOpen] = useState(true); // Untuk Desktop Hide/Unhide
+      const [mobileSidebar, setMobileSidebar] = useState(false); // Untuk Mobile
+
       return (
-        <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row">
-          {sidebarOpen && <div onClick={()=>setSidebarOpen(false)} className="fixed inset-0 bg-black/50 z-30 md:hidden"></div>}
-          <aside className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 shadow-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-            <div className="p-6 border-b border-slate-800 flex items-center gap-3">
+        <div className="min-h-screen bg-slate-100 flex overflow-hidden">
+          {/* Mobile Overlay */}
+          <div onClick={()=>setMobileSidebar(false)} className={`fixed inset-0 bg-black/50 z-30 md:hidden ${mobileSidebar ? 'block' : 'hidden'}`}></div>
+          
+          {/* Sidebar */}
+          <aside className={`${mobileSidebar ? 'translate-x-0' : '-translate-x-full'} ${sidebarOpen ? 'md:w-64 md:translate-x-0' : 'md:w-0 md:-translate-x-full'} fixed md:relative z-40 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 ease-in-out shadow-2xl h-screen shrink-0 overflow-hidden`}>
+            <div className="p-6 border-b border-slate-800 flex items-center gap-3 w-64">
               <div className="w-10 h-10 bg-white rounded-xl p-1 shrink-0"><img src={SCHOOL_LOGO} className="w-full h-full object-contain" /></div>
               <div><h2 className="font-bold text-white text-sm tracking-wide">MTsN 3 BWI</h2><span className="text-[10px] text-emerald-400 uppercase font-extrabold tracking-widest">{user.role} PANEL</span></div>
             </div>
-            <nav className="flex-1 p-4 space-y-2">
-              <button onClick={() => {setActiveMenu('rekap'); setSidebarOpen(false)}} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition ${activeMenu === 'rekap' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' : 'hover:bg-slate-800'}`}><i className="fas fa-list w-5"></i> Rekap Tamu</button>
+            <nav className="flex-1 p-4 space-y-2 w-64 overflow-y-auto">
+              <button onClick={() => {setActiveMenu('rekap'); setMobileSidebar(false)}} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition ${activeMenu === 'rekap' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' : 'hover:bg-slate-800'}`}><i className="fas fa-list w-5"></i> Rekap Tamu</button>
               {user.role === 'admin' && (
                 <>
-                  <button onClick={() => {setActiveMenu('gtk'); setSidebarOpen(false)}} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition ${activeMenu === 'gtk' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' : 'hover:bg-slate-800'}`}><i className="fas fa-users w-5"></i> Data GTK</button>
-                  <button onClick={() => {setActiveMenu('pengaturan'); setSidebarOpen(false)}} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition ${activeMenu === 'pengaturan' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' : 'hover:bg-slate-800'}`}><i className="fas fa-cog w-5"></i> Pengaturan</button>
+                  <button onClick={() => {setActiveMenu('gtk'); setMobileSidebar(false)}} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition ${activeMenu === 'gtk' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' : 'hover:bg-slate-800'}`}><i className="fas fa-users w-5"></i> Data GTK</button>
+                  <button onClick={() => {setActiveMenu('pengaturan'); setMobileSidebar(false)}} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition ${activeMenu === 'pengaturan' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' : 'hover:bg-slate-800'}`}><i className="fas fa-cog w-5"></i> Pengaturan</button>
                 </>
               )}
             </nav>
-            <div className="p-4 border-t border-slate-800">
+            <div className="p-4 border-t border-slate-800 w-64">
               <button onClick={() => setView('public')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition"><i className="fas fa-sign-out-alt w-5"></i> Keluar</button>
             </div>
           </aside>
-          <main className="flex-1 flex flex-col h-screen overflow-hidden">
+
+          {/* Konten Kanan */}
+          <main className="flex-1 flex flex-col h-screen overflow-hidden min-w-0 relative">
             <header className="bg-white border-b border-slate-200 h-16 px-6 flex items-center gap-4 shrink-0 shadow-sm z-10">
-              <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600 text-lg"><i className="fas fa-bars"></i></button>
+              {/* Tombol Hide/Unhide Sidebar Desktop */}
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden md:flex text-slate-500 hover:text-emerald-600 text-xl transition items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-100">
+                <i className={`fas ${sidebarOpen ? 'fa-align-left' : 'fa-align-right'}`}></i>
+              </button>
+              {/* Tombol Sidebar Mobile */}
+              <button onClick={() => setMobileSidebar(true)} className="md:hidden text-slate-600 text-lg"><i className="fas fa-bars"></i></button>
+              
               <h1 className="font-extrabold text-slate-800 uppercase tracking-wide text-sm md:text-base">{activeMenu} SISTEM</h1>
             </header>
-            <div className="p-4 md:p-8 flex-1 overflow-y-auto bg-slate-50">
-              {activeMenu === 'rekap' && <RekapTamuView showToast={showToast} />}
+            <div className="p-4 md:p-6 flex-1 overflow-y-auto bg-slate-50">
+              {activeMenu === 'rekap' && <RekapTamuView showToast={showToast} user={user} />}
               {activeMenu === 'gtk' && user.role === 'admin' && <DataGTKView showToast={showToast} />}
               {activeMenu === 'pengaturan' && user.role === 'admin' && <PengaturanView showToast={showToast} />}
             </div>
@@ -354,23 +309,25 @@
       );
     }
 
-    // --- VIEW: REKAP & FILTER TAMU + DOWNLOAD PDF ---
-    function RekapTamuView({ showToast }) {
+    // --- VIEW: REKAP TAMU DENGAN SEMUA KOLOM & FITUR EDIT/HAPUS ---
+    function RekapTamuView({ showToast, user }) {
       const [guests, setGuests] = useState([]);
       const [filteredData, setFilteredData] = useState([]);
       const [loading, setLoading] = useState(true);
       const [filterMulai, setFilterMulai] = useState('');
       const [filterAkhir, setFilterAkhir] = useState('');
-      
       const [previewImgUrl, setPreviewImgUrl] = useState(null);
+      
+      // State Untuk Edit Modal
+      const [editModalOpen, setEditModalOpen] = useState(false);
+      const [editForm, setEditForm] = useState(null);
+      const [savingEdit, setSavingEdit] = useState(false);
 
       useEffect(() => { loadData(); }, []);
 
       const loadData = () => {
         setLoading(true);
-        fetchAPI('getGuest').then(data => {
-          setGuests(data); setFilteredData(data); setLoading(false);
-        }).catch(() => showToast("Gagal memuat rekap tamu", "error"));
+        fetchAPI('getGuest').then(data => { setGuests(data); setFilteredData(data); setLoading(false); }).catch(() => showToast("Gagal memuat rekap tamu", "error"));
       };
 
       const handleFilter = () => {
@@ -387,70 +344,89 @@
       };
 
       const downloadPDF = () => {
-        if (filteredData.length === 0) return showToast("Data kosong, tidak ada yang didownload", "error");
+        if (filteredData.length === 0) return showToast("Data kosong", "error");
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('landscape'); 
         doc.setFontSize(16); doc.text("Rekapitulasi Buku Tamu - MTsN 3 Banyuwangi", 14, 15);
         doc.setFontSize(10); doc.text(`Periode: ${filterMulai || 'Awal'} s.d ${filterAkhir || 'Akhir'}`, 14, 22);
-        const tableColumn = ["Tgl/Waktu", "Nama Tamu", "Asal Instansi", "No. HP", "Bertemu", "Keperluan"];
+        
+        // Memasukkan SEMUA KOLOM di Ekspor PDF
+        const tableColumn = ["Tgl/Waktu", "Nama", "L/P", "No. HP", "Instansi", "Alamat", "Bertemu", "Keperluan"];
         const tableRows = [];
-        filteredData.forEach(g => { tableRows.push([g.tanggal, g.nama, g.instansi, g.noHp, g.bertemu, g.keperluan]); });
-        doc.autoTable({ head: [tableColumn], body: tableRows, startY: 28, theme: 'grid', styles: { fontSize: 8 } });
+        filteredData.forEach(g => { tableRows.push([g.tanggal, g.nama, g.jk, g.noHp, g.instansi, g.alamat, g.bertemu, g.keperluan]); });
+        
+        doc.autoTable({ head: [tableColumn], body: tableRows, startY: 28, theme: 'grid', styles: { fontSize: 7 } });
         doc.save(`Rekap_Tamu_${new Date().getTime()}.pdf`);
-        showToast("PDF berhasil dibuat dan diunduh!", "success");
+        showToast("PDF berhasil diunduh!", "success");
       };
 
-      // Fungsi Pembantu Tampilan Status (Badge)
-      const StatusBadge = ({ status }) => {
-        let badgeClass = "bg-slate-100 text-slate-500";
-        let text = status;
-        
-        if (status === 'Terkirim') {
-          badgeClass = "bg-emerald-100 text-emerald-700";
-        } else if (status.startsWith('Gagal')) {
-          badgeClass = "bg-rose-100 text-rose-700 cursor-help border border-rose-200";
-          text = "GAGAL"; // Persingkat agar tabel tidak berantakan
+      // FUNGSI EDIT DAN HAPUS KHUSUS ADMIN
+      const openEditModal = (guest) => { setEditForm({...guest}); setEditModalOpen(true); };
+      const handleSaveEdit = (e) => {
+        e.preventDefault(); setSavingEdit(true);
+        fetchAPI('editGuest', editForm).then(res => {
+          setSavingEdit(false);
+          if(res.success) { showToast(res.message, 'success'); setEditModalOpen(false); loadData(); }
+          else { showToast(res.message, 'error'); }
+        });
+      };
+      const handleDelete = (id) => {
+        if(confirm("PERINGATAN: Anda yakin ingin menghapus data tamu ini secara permanen?")) {
+          setLoading(true);
+          fetchAPI('deleteGuest', id).then(res => {
+            if(res.success) { showToast(res.message, 'success'); loadData(); }
+            else { showToast(res.message, 'error'); setLoading(false); }
+          });
         }
+      };
 
-        return (
-          <span title={status} className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase ${badgeClass}`}>
-            {text}
-          </span>
-        );
+      const StatusBadge = ({ status }) => {
+        let badgeClass = "bg-slate-100 text-slate-500"; let text = status;
+        if (status === 'Terkirim') badgeClass = "bg-emerald-100 text-emerald-700";
+        else if (status.startsWith('Gagal')) { badgeClass = "bg-rose-100 text-rose-700 cursor-help"; text = "GAGAL"; }
+        return (<span title={status} className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${badgeClass}`}>{text}</span>);
       };
 
       return (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 relative">
           
-          {/* MODAL POP-UP GAMBAR */}
+          {/* MODAL GAMBAR */}
           {previewImgUrl && (
             <div className="fixed inset-0 z-[99999] bg-slate-900/90 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setPreviewImgUrl(null)}>
               <div className="animate-modal relative w-full max-w-4xl bg-white p-2 md:p-3 rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
-                <div className="absolute -top-12 right-0 flex gap-4">
-                  <a href={previewImgUrl} target="_blank" className="text-white hover:text-emerald-400 text-xl md:text-2xl transition bg-slate-800/50 p-2 rounded-full"><i className="fas fa-external-link-alt"></i></a>
-                  <button onClick={() => setPreviewImgUrl(null)} className="text-white hover:text-rose-400 text-2xl md:text-3xl transition bg-slate-800/50 px-3 py-1 rounded-full"><i className="fas fa-times"></i></button>
+                <button onClick={() => setPreviewImgUrl(null)} className="absolute -top-12 right-0 text-white hover:text-rose-400 text-3xl bg-slate-800/50 px-3 py-1 rounded-full transition"><i className="fas fa-times"></i></button>
+                <img src={previewImgUrl} className="w-full h-auto max-h-[85vh] object-contain rounded-xl bg-slate-100" />
+              </div>
+            </div>
+          )}
+
+          {/* MODAL EDIT TAMU (KHUSUS ADMIN) */}
+          {editModalOpen && editForm && user.role === 'admin' && (
+            <div className="fixed inset-0 z-[99999] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm">
+              <div className="animate-modal w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="bg-emerald-600 px-6 py-4 flex justify-between items-center text-white shrink-0">
+                  <h3 className="font-bold text-lg"><i className="fas fa-edit mr-2"></i>Edit Data Tamu</h3>
+                  <button onClick={() => setEditModalOpen(false)} className="hover:text-emerald-200 text-xl"><i className="fas fa-times"></i></button>
                 </div>
-                <img
-                  src={(() => {
-                    let fileId = "";
-                    const m1 = previewImgUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                    const m2 = previewImgUrl.match(/id=([a-zA-Z0-9_-]+)/);
-                    if(m1) fileId = m1[1]; else if(m2) fileId = m2[1];
-                    return fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : previewImgUrl;
-                  })()}
-                  onError={(e) => {
-                    let fileId = "";
-                    const m1 = previewImgUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                    const m2 = previewImgUrl.match(/id=([a-zA-Z0-9_-]+)/);
-                    if(m1) fileId = m1[1]; else if(m2) fileId = m2[1];
-                    if(fileId) {
-                      const fallback = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
-                      if(e.target.src !== fallback) e.target.src = fallback;
-                    }
-                  }}
-                  className="w-full h-auto max-h-[85vh] object-contain rounded-xl bg-slate-100"
-                  alt="Bukti Tamu Diperbesar"
-                />
+                <div className="p-6 overflow-y-auto custom-scrollbar">
+                  <form id="editForm" onSubmit={handleSaveEdit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nama</label><input type="text" value={editForm.nama} onChange={e=>setEditForm({...editForm, nama: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" required /></div>
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">No. HP</label><input type="text" value={editForm.noHp} onChange={e=>setEditForm({...editForm, noHp: formatNoWA(e.target.value)})} className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" required /></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Asal Instansi</label><input type="text" value={editForm.instansi} onChange={e=>setEditForm({...editForm, instansi: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" required /></div>
+                      <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">L/P</label><select value={editForm.jk} onChange={e=>setEditForm({...editForm, jk: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" required><option value="L">Laki-laki (L)</option><option value="P">Perempuan (P)</option></select></div>
+                    </div>
+                    <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Alamat Lengkap</label><textarea value={editForm.alamat} onChange={e=>setEditForm({...editForm, alamat: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" rows="2" required></textarea></div>
+                    <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Bertemu Dengan</label><input type="text" value={editForm.bertemu} onChange={e=>setEditForm({...editForm, bertemu: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" required /></div>
+                    <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Keperluan</label><textarea value={editForm.keperluan} onChange={e=>setEditForm({...editForm, keperluan: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50" rows="2" required></textarea></div>
+                  </form>
+                </div>
+                <div className="p-4 border-t bg-slate-50 flex justify-end gap-3 shrink-0">
+                  <button onClick={() => setEditModalOpen(false)} type="button" className="px-5 py-2 rounded-lg text-sm font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">Batal</button>
+                  <button type="submit" form="editForm" disabled={savingEdit} className="px-5 py-2 rounded-lg text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-lg">{savingEdit ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+                </div>
               </div>
             </div>
           )}
@@ -460,7 +436,6 @@
               <div><label className="block text-[10px] uppercase text-slate-500 font-extrabold mb-1">Mulai Tgl</label><input type="date" value={filterMulai} onChange={e=>setFilterMulai(e.target.value)} className="border rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 font-medium" /></div>
               <div><label className="block text-[10px] uppercase text-slate-500 font-extrabold mb-1">Sampai Tgl</label><input type="date" value={filterAkhir} onChange={e=>setFilterAkhir(e.target.value)} className="border rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500 font-medium" /></div>
               <button onClick={handleFilter} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition shadow"><i className="fas fa-search mr-1"></i> Filter</button>
-              <button onClick={() => {setFilterMulai(''); setFilterAkhir(''); setFilteredData(guests);}} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition"><i className="fas fa-times mr-1"></i> Reset</button>
             </div>
             <div className="flex gap-2">
               <button onClick={loadData} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition"><i className="fas fa-sync-alt"></i></button>
@@ -468,24 +443,32 @@
             </div>
           </div>
           {loading ? <div className="text-center py-10"><i className="fas fa-spinner fa-spin text-2xl text-emerald-600"></i><p className="mt-2 text-sm text-slate-500 font-medium">Memuat Data...</p></div> : 
-            <div className="overflow-x-auto rounded-xl border border-slate-100">
-              <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
-                <thead className="bg-slate-50"><tr className="border-b border-slate-200 text-slate-500 text-[11px] uppercase font-extrabold tracking-wider"><th className="py-3 px-4">Tgl</th><th className="py-3 px-4">Nama</th><th className="py-3 px-4">Bertemu</th><th className="py-3 px-4 text-center">Foto</th><th className="py-3 px-4 text-center">WA Kepsek</th><th className="py-3 px-4 text-center">WA Waka</th><th className="py-3 px-4 text-center">WA GTK</th></tr></thead>
+            <div className="overflow-x-auto rounded-xl border border-slate-100 custom-scrollbar pb-2">
+              <table className="w-full text-left border-collapse text-sm whitespace-nowrap min-w-[1000px]">
+                <thead className="bg-slate-50"><tr className="border-b border-slate-200 text-slate-500 text-[10px] uppercase font-extrabold tracking-wider"><th className="py-3 px-3">Tgl</th><th className="py-3 px-3">Nama</th><th className="py-3 px-2">L/P</th><th className="py-3 px-3">No. HP</th><th className="py-3 px-3">Instansi</th><th className="py-3 px-3">Alamat</th><th className="py-3 px-3">Bertemu</th><th className="py-3 px-3">Keperluan</th><th className="py-3 px-3 text-center">Foto</th><th className="py-3 px-2 text-center" title="Pimpinan / Wakil / GTK">Status WA</th>{user.role === 'admin' && <th className="py-3 px-3 text-center sticky right-0 bg-slate-50 border-l border-slate-200">Aksi</th>}</tr></thead>
                 <tbody>
                   {filteredData.map((g, i) => (
                     <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 text-xs font-medium text-slate-500">{g.tanggal}</td>
-                      <td className="py-3 px-4 font-bold text-slate-800">{g.nama}</td>
-                      <td className="py-3 px-4 font-semibold text-slate-700">{g.bertemu}</td>
-                      <td className="py-3 px-4 text-center">
-                        {g.buktiUrl !== '-' ? <button type="button" onClick={() => setPreviewImgUrl(g.buktiUrl)} className="text-blue-600 hover:text-blue-800 font-bold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"><i className="fas fa-image"></i> Buka</button> : '-'}
-                      </td>
-                      <td className="py-3 px-4 text-center"><StatusBadge status={g.waPimpinan} /></td>
-                      <td className="py-3 px-4 text-center"><StatusBadge status={g.waWakil} /></td>
-                      <td className="py-3 px-4 text-center"><StatusBadge status={g.waGTK} /></td>
+                      <td className="py-2.5 px-3 text-xs font-medium text-slate-500">{g.tanggal}</td>
+                      <td className="py-2.5 px-3 font-bold text-slate-800">{g.nama}</td>
+                      <td className="py-2.5 px-2 text-slate-600">{g.jk}</td>
+                      <td className="py-2.5 px-3 text-slate-600">{g.noHp}</td>
+                      <td className="py-2.5 px-3 text-slate-600">{g.instansi}</td>
+                      <td className="py-2.5 px-3 text-slate-600 max-w-[150px] truncate" title={g.alamat}>{g.alamat}</td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-700">{g.bertemu}</td>
+                      <td className="py-2.5 px-3 text-slate-600 max-w-[150px] truncate" title={g.keperluan}>{g.keperluan}</td>
+                      <td className="py-2.5 px-3 text-center">{g.buktiUrl !== '-' ? <button onClick={() => setPreviewImgUrl(g.buktiUrl)} className="text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-1 rounded-lg text-xs"><i className="fas fa-image"></i> Buka</button> : '-'}</td>
+                      <td className="py-2.5 px-2 text-center flex flex-col gap-1 mt-1"><StatusBadge status={g.waPimpinan} /><StatusBadge status={g.waWakil} /><StatusBadge status={g.waGTK} /></td>
+                      {/* TAMPILKAN TOMBOL AKSI HANYA JIKA ROLE = ADMIN */}
+                      {user.role === 'admin' && (
+                        <td className="py-2.5 px-3 text-center sticky right-0 bg-white border-l border-slate-100 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.05)]">
+                          <button onClick={()=>openEditModal(g)} className="text-blue-600 hover:bg-blue-50 px-2 py-1.5 rounded mr-1" title="Edit"><i className="fas fa-edit"></i></button>
+                          <button onClick={()=>handleDelete(g.id)} className="text-rose-600 hover:bg-rose-50 px-2 py-1.5 rounded" title="Hapus"><i className="fas fa-trash"></i></button>
+                        </td>
+                      )}
                     </tr>
                   ))}
-                  {filteredData.length === 0 && <tr><td colSpan="7" className="text-center py-8 text-slate-400 font-medium">Belum ada data tamu.</td></tr>}
+                  {filteredData.length === 0 && <tr><td colSpan={user.role === 'admin' ? "11" : "10"} className="text-center py-8 text-slate-400 font-medium">Belum ada data tamu.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -496,27 +479,12 @@
 
     // --- VIEW: MANAJEMEN GTK ---
     function DataGTKView({ showToast }) {
-      const [list, setList] = useState([]);
-      const [loading, setLoading] = useState(false);
-      const [form, setForm] = useState({ id: '', nama: '', noWa: '' });
-      const [isEditing, setIsEditing] = useState(false);
+      const [list, setList] = useState([]); const [loading, setLoading] = useState(false); const [form, setForm] = useState({ id: '', nama: '', noWa: '' }); const [isEditing, setIsEditing] = useState(false);
       useEffect(() => { loadGTK(); }, []);
       const loadGTK = () => { setLoading(true); fetchAPI('getGTK').then(data => { setList(data); setLoading(false); }); };
-      const handleSave = (e) => {
-        e.preventDefault(); setLoading(true);
-        fetchAPI('saveGTK', form).then(res => {
-          showToast(res.message, res.success ? 'success' : 'error');
-          setForm({ id: '', nama: '', noWa: '' }); setIsEditing(false); loadGTK();
-        });
-      };
+      const handleSave = (e) => { e.preventDefault(); setLoading(true); fetchAPI('saveGTK', form).then(res => { showToast(res.message, res.success ? 'success' : 'error'); setForm({ id: '', nama: '', noWa: '' }); setIsEditing(false); loadGTK(); }); };
       const handleEdit = (gtk) => { setForm(gtk); setIsEditing(true); };
-      const handleDelete = (id) => {
-        if(!confirm("Anda yakin ingin menghapus data guru ini?")) return;
-        setLoading(true); fetchAPI('deleteGTK', id).then(res => {
-          showToast(res.message, res.success ? 'success' : 'error'); loadGTK();
-        });
-      };
-
+      const handleDelete = (id) => { if(!confirm("Anda yakin ingin menghapus data guru ini?")) return; setLoading(true); fetchAPI('deleteGTK', id).then(res => { showToast(res.message, res.success ? 'success' : 'error'); loadGTK(); }); };
       return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1 bg-white rounded-3xl shadow-sm border border-slate-200 p-6 h-fit">
@@ -524,31 +492,12 @@
             <form onSubmit={handleSave} className="space-y-4">
               <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nama GTK</label><input type="text" required value={form.nama} onChange={e=>setForm({...form, nama: e.target.value})} className="w-full px-4 py-2.5 border rounded-xl text-sm font-medium outline-none focus:border-emerald-500 bg-slate-50" /></div>
               <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">No. WhatsApp</label><input type="text" required value={form.noWa} onChange={e=>setForm({...form, noWa: formatNoWA(e.target.value)})} className="w-full px-4 py-2.5 border rounded-xl text-sm font-medium outline-none focus:border-emerald-500 bg-slate-50" placeholder="628xxx" /></div>
-              <div className="flex gap-2 pt-2">
-                <button type="submit" disabled={loading} className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-emerald-700 transition">{loading ? 'Menyimpan...' : 'Simpan Data'}</button>
-                {isEditing && <button type="button" onClick={() => {setForm({id:'', nama:'', noWa:''}); setIsEditing(false);}} className="bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-300">Batal</button>}
-              </div>
+              <div className="flex gap-2 pt-2"><button type="submit" disabled={loading} className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-emerald-700 transition">{loading ? 'Menyimpan...' : 'Simpan Data'}</button>{isEditing && <button type="button" onClick={() => {setForm({id:'', nama:'', noWa:''}); setIsEditing(false);}} className="bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-300">Batal</button>}</div>
             </form>
           </div>
           <div className="md:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-extrabold text-slate-800 mb-4">Daftar GTK & Pegawai</h3>
-            <div className="overflow-x-auto rounded-xl border border-slate-100">
-              <table className="w-full text-left text-sm border-collapse">
-                <thead className="bg-slate-50"><tr className="border-b border-slate-200 text-slate-500 text-[11px] uppercase font-extrabold tracking-wider"><th className="py-3 px-4">Nama Lengkap</th><th className="py-3 px-4">No. WA</th><th className="py-3 px-4 text-center">Aksi</th></tr></thead>
-                <tbody>
-                  {list.map((g, i) => (
-                    <tr key={i} className="border-b hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 font-bold text-slate-700">{g.nama}</td><td className="py-3 px-4 font-medium text-slate-600">{g.noWa}</td>
-                      <td className="py-3 px-4 text-center">
-                        <button onClick={()=>handleEdit(g)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold mr-2 transition"><i className="fas fa-edit"></i> Edit</button>
-                        <button onClick={()=>handleDelete(g.id)} className="text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg text-xs font-bold transition"><i className="fas fa-trash"></i> Hapus</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {list.length === 0 && <tr><td colSpan="3" className="text-center py-6 text-slate-400 font-medium">Belum ada data guru/pegawai.</td></tr>}
-                </tbody>
-              </table>
-            </div>
+            <div className="overflow-x-auto rounded-xl border border-slate-100"><table className="w-full text-left text-sm border-collapse"><thead className="bg-slate-50"><tr className="border-b border-slate-200 text-slate-500 text-[11px] uppercase font-extrabold tracking-wider"><th className="py-3 px-4">Nama Lengkap</th><th className="py-3 px-4">No. WA</th><th className="py-3 px-4 text-center">Aksi</th></tr></thead><tbody>{list.map((g, i) => (<tr key={i} className="border-b hover:bg-slate-50/80 transition-colors"><td className="py-3 px-4 font-bold text-slate-700">{g.nama}</td><td className="py-3 px-4 font-medium text-slate-600">{g.noWa}</td><td className="py-3 px-4 text-center"><button onClick={()=>handleEdit(g)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold mr-2 transition"><i className="fas fa-edit"></i> Edit</button><button onClick={()=>handleDelete(g.id)} className="text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg text-xs font-bold transition"><i className="fas fa-trash"></i> Hapus</button></td></tr>))}{list.length === 0 && <tr><td colSpan="3" className="text-center py-6 text-slate-400 font-medium">Belum ada data guru/pegawai.</td></tr>}</tbody></table></div>
           </div>
         </div>
       );
@@ -556,16 +505,9 @@
 
     // --- VIEW: PENGATURAN SISTEM ---
     function PengaturanView({ showToast }) {
-      const [form, setForm] = useState({ tokenFonnte: '', waPimpinan: '', waWakil: '' });
-      const [loading, setLoading] = useState(false);
+      const [form, setForm] = useState({ tokenFonnte: '', waPimpinan: '', waWakil: '' }); const [loading, setLoading] = useState(false);
       useEffect(() => { fetchAPI('getSettings').then(data => setForm(data)); }, []);
-      const handleSave = (e) => {
-        e.preventDefault(); setLoading(true);
-        fetchAPI('saveSettings', form).then(res => {
-          setLoading(false); showToast(res.message, res.success ? 'success' : 'error');
-        });
-      };
-
+      const handleSave = (e) => { e.preventDefault(); setLoading(true); fetchAPI('saveSettings', form).then(res => { setLoading(false); showToast(res.message, res.success ? 'success' : 'error'); }); };
       return (
         <div className="max-w-xl bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
           <h3 className="font-extrabold text-slate-800 mb-6 flex items-center gap-3 text-lg"><i className="fas fa-shield-alt text-emerald-600 text-2xl"></i> Pengaturan Notifikasi WA</h3>
@@ -573,9 +515,7 @@
             <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Token API Fonnte</label><input type="text" value={form.tokenFonnte} onChange={e=>setForm({...form, tokenFonnte: e.target.value})} className="w-full px-4 py-3 border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50" placeholder="Masukkan Kode Token..." /></div>
             <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">No. WA Pimpinan / Kepala Sekolah</label><input type="tel" value={form.waPimpinan} onChange={e=>setForm({...form, waPimpinan: formatNoWA(e.target.value)})} className="w-full px-4 py-3 border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50" placeholder="628xxxx (Otomatis)" /></div>
             <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">No. WA Wakil Pimpinan (Opsional)</label><input type="tel" value={form.waWakil} onChange={e=>setForm({...form, waWakil: formatNoWA(e.target.value)})} className="w-full px-4 py-3 border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50" placeholder="628xxxx (Otomatis)" /></div>
-            <div className="pt-2">
-              <button type="submit" disabled={loading} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition hover:bg-emerald-700 shadow-lg">{loading ? 'Memproses Penyimpanan...' : 'Simpan Pengaturan Sistem'}</button>
-            </div>
+            <div className="pt-2"><button type="submit" disabled={loading} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition hover:bg-emerald-700 shadow-lg">{loading ? 'Memproses Penyimpanan...' : 'Simpan Pengaturan Sistem'}</button></div>
           </form>
         </div>
       );
